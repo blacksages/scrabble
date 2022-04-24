@@ -10,6 +10,12 @@ struct ScrabbleDict_t {
     List* words;
 };
 
+static void swap_char(char *tab, int index_1, int index_2){
+  char tmp = tab[index_1];
+  tab[index_1] = tab[index_2];
+  tab[index_2] = tmp;
+}
+
 //heapsort for strings
 static void max_heapify_char(char *array, int i, int heap_size){
   int l = 2 * i + 1;
@@ -47,11 +53,7 @@ static void heapsort_char(char *array, int array_size){
   }
 }
 
-static void swap_char(char *tab, int index_1, int index_2){
-  char tmp = tab[index_1];
-  tab[index_1] = tab[index_2];
-  tab[index_2] = tmp;
-}
+
 ////////////////////////
 
 static bool does_b_contains_a(char *a, char *b, int size_a, int size_b){
@@ -115,7 +117,7 @@ static bool match(const char* letters, char* word) {
 	//créer une copie de l'ensemble de lettre que l'on peut trier;
 	char *letters_copy = malloc(strlen(letters) * sizeof(char));
 
-	for(int i = 0; i < strlen(cte); i++)
+	for(int i = 0; i < len_letters; i++)
 		letters_copy[i] = letters[i];
 	///////////////////////////////////////////////////////////////
 
@@ -130,6 +132,7 @@ static bool match(const char* letters, char* word) {
 
 
 }
+
 
 
 ScrabbleDict* scrabbleCreateDict(List* words) {
