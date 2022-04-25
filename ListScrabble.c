@@ -11,10 +11,10 @@
 #define CUTOFF 31
 
 static void swap_char(char *tab, int index_1, int index_2);
-static bool match_insert(char *letters, char *word);
-static bool match_count(char *letters, char *word);
+static bool match_insert(char *letters, const char *word);
+static bool match_count(const char *letters, const char *word);
 static bool match(const char *letters, char *word);
-static int _LETTER_COUNT[26] = {0};
+static size_t _LETTER_COUNT[26] = {0};
 struct ScrabbleDict_t
 {
     List *words;
@@ -27,7 +27,7 @@ static void swap_char(char *tab, int index_1, int index_2)
     tab[index_2] = tmp;
 }
 
-static bool match_insert(char *letters, char *word)
+static bool match_insert(char *letters, const char *word)
 {
     int index_l = 0, index_w = 0;
 
@@ -45,10 +45,10 @@ static bool match_insert(char *letters, char *word)
     return word[index_w] == '\0';
 }
 
-static bool match_count(char *letters, char *word)
+static bool match_count(const char *letters, const char *word)
 {
     memset(_LETTER_COUNT, 0, 26 * sizeof(int));
-    int index = 0;
+    size_t index = 0;
     while (letters[index] != '\0')
     {
         _LETTER_COUNT[(letters[index] - 'a') % 26]++;
