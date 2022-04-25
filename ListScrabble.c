@@ -23,17 +23,17 @@ static bool match(const char* letters, char* word) {
 	if(strlen(word) > strlen(letters))
 		return false;
   
-  int index_l = 0, index_w = 0, offset = 0;
+  int index_l = 0, index_w = 0;
 	
 	while(letters[index_l] != '\0' && word[index_w] != '\0'){
 		if(letters[index_l] == word[index_w]){
-      swap_char(letters, offset++, index_l);
-      index_l = offset;
+      swap_char(letters, index_w++, index_l);
+      index_l = index_w;
 		}
-		index_w++;
+		index_l++;
 	}
 
-	return letters[index_l] == '\0';
+	return word[index_w] == '\0';
 }
 
 
