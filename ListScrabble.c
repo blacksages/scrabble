@@ -27,7 +27,8 @@ static bool match(const char* letters, char* word) {
 	
 	while(letters[index_l] != '\0' && word[index_w] != '\0'){
 		if(letters[index_l] == word[index_w]){
-      swap_char(letters, index_w++, index_l);
+      swap_char(letters, index_w, index_l);
+      index_w++;
       index_l = index_w;
 		}
 		index_l++;
