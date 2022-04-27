@@ -1,8 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "Dict.h"
 
+/**
+ * @brief Noeud d'un arbre n-aire.
+ *        Issu du cours de SDA, slide 223.
+ *
+ */
 typedef struct Node_t
 {
     struct Node_t *children;
@@ -19,10 +25,41 @@ struct Dict_t
     size_t size;
     size_t nbkeys;
 };
-
+/**
+ * @brief Récupère le noeud possèdant la donnée associée à la clé passée.
+ *
+ * @param d Trie
+ * @param key Clé de la donnée
+ * @return Node* NULL si la donnée ne se trouve pas dans le trie sinon le noeud
+ */
 static Node *dictGet(Dict *d, const char *key);
+/**
+ * @brief Initialise le noeud avec ses membres.
+ *
+ * @param node Noeud à initialiser
+ * @param children Le premier enfant du noeud
+ * @param parent Le parent du noeud
+ * @param nextchild Le prochain frère/soeur
+ * @param key La clé associée au noeud
+ * @param data La donnée que contient le noeud
+ */
 static void init_node(Node *node, Node *children, Node *parent, Node *nextchild, char key, char *data);
+/**
+ * @brief Ajoute un noeud au trie mais ne l'initialise pas et ne l'insère pas avec les autres noeuds.
+ *        Le but de cette fonction est en vue de faciliter la méthode dictFree
+ *
+ * @param d Trie
+ * @param node Noeud à ajouer
+ */
 static void append_node(Dict *d, Node *node);
+/**
+ * @brief Recherche récursive du mot le plus long.
+ *
+ * @param children Noeud de départ
+ * @param letters Lettres disponibles
+ * @param longest Le plus long mot déjà trouvé en amont
+ * @return const char* Le mot le plus long trouvé en chemin
+ */
 static const char *dictSearchLongest_rec(Node *children, const char *letters, const char *longest);
 
 static Node *dictGet(Dict *d, const char *key)
@@ -61,6 +98,11 @@ static void append_node(Dict *d, Node *node)
     {
         d->size = 2 * d->size; // On multiplie pour avoir une complexité linéaire
         d->array = realloc(d->array, d->size * sizeof(Node *));
+        if (!d->array)
+        {
+            printf("Allocation error in append_node!\n");
+            return;
+        }
     }
     d->array[d->nbkeys] = node;
     d->nbkeys++;
@@ -70,12 +112,22 @@ Dict *dictCreateEmpty()
 {
     Dict *dict = malloc(sizeof(Dict));
     Node *root = malloc(sizeof(Node));
+    if (!dict || !root)
+    {
+        printf("Allocation error in dictCreateEmpty!\n");
+        return NULL;
+    }
     init_node(root, NULL, NULL, NULL, '\0', NULL);
 
     dict->root = root;
     dict->size = 10;
     dict->array = calloc(dict->size, sizeof(Node *));
-    dict->nbkeys = 1;
+    if (!dict->array)
+    {
+        printf("Allocation error in dictCreateEmpty!\n");
+        return NULL;
+    }
+    dict->nbkeys = 0;
     dict->array[0] = root;
     return dict;
 }
@@ -87,8 +139,8 @@ size_t dictNbKeys(Dict *d)
 
 void dictFree(Dict *d)
 {
-    for (size_t i = d->nbkeys; i != 0; i--)
-        free(d->array[i - 1]);
+    for (size_t i = 0; i < d->nbkeys; i++)
+        free(d->array[i]);
     free(d->array);
     free(d);
 }
@@ -106,20 +158,20 @@ void *dictSearch(Dict *d, const char *key)
 
 static const char *dictSearchLongest_rec(Node *children, const char *letters, const char *longest)
 {
-    if (strcmp(letters, "") == 0 || children == NULL)
+    if (strcmp(letters, "") == 0 || children == NULL) // Plus d'enfants ou de lettre à traiter
         return longest;
     Node *child = children;
     char *subletters = NULL;
     const char *candidate = NULL;
-    while (child)
+    while (child) // On boucle sur tous les enfants
     {
-        subletters = strchr(letters, child->label);
+        subletters = strchr(letters, child->label); // Renvoie une sous-chaîne à partir de laquelle on retrouve la lettre
         if (subletters)
         {
-            if (child->data && strlen(child->data) > strlen(longest))
+            if (child->data && strlen(child->data) > strlen(longest)) // On retrouve un mot et il est plus long
                 longest = child->data;
-            candidate = dictSearchLongest_rec(child->children, subletters + 1, longest);
-            if (strlen(candidate) > strlen(longest))
+            candidate = dictSearchLongest_rec(child->children, subletters + 1, longest); // On traite les enfants en avançant d'une lettre
+            if (strlen(candidate) > strlen(longest))                                     // On a trouve un mot plus long
                 longest = candidate;
         }
         child = child->nextchild;
@@ -130,41 +182,47 @@ static const char *dictSearchLongest_rec(Node *children, const char *letters, co
 void *dictSearchLongest(Dict *d, const char *letters)
 {
     const char *longest = dictSearchLongest_rec(d->root->children, letters, "");
-    return strcmp(longest, "") == 0 ? NULL : longest;
+    return strcmp(longest, "") == 0 ? NULL : longest; // longest est vide si c'est le mot initial qui a démarré l'algorithme
 }
 
 void dictInsert(Dict *d, const char *key, void *data)
 {
     Node *node = dictGet(d, key);
-    if (!node)
+    if (node)
+        node->data = (char *)data;
+    else
     {
         size_t index = 0;
         Node *next_node = d->root, *prev_child = NULL, *parent_node = NULL, *new_node = NULL;
-        while (key[index] != '\0') // Max strlen(key)
+        while (key[index] != '\0') // On rajoute toutes les lettres de la clé dans le trie
         {
             parent_node = next_node;
             next_node = parent_node->children; // On regarde les prochaines lettres stockées
-            while (next_node)                  // Max 26 tours (nbre de char possibles)
+            while (next_node)                  // Max 26 tours pour chercher la lettre (nbre de char possibles)
             {
                 if (next_node->label == key[index])
                     break;
                 prev_child = next_node;
                 next_node = next_node->nextchild;
             }
-            if (!next_node)
+            if (!next_node) // Lettre non trouvée, on doit l'ajouter
             {
                 new_node = malloc(sizeof(Node));
+                if (!new_node)
+                {
+                    printf("Allocation error in dictInsert!\n");
+                    return;
+                }
                 init_node(new_node, NULL, parent_node, NULL, key[index], NULL);
-                if (key[index + 1] == '\0') // Est-on à la dernière lettre de "key"?
-                    new_node->data = data;
-                if (parent_node->children) // Pas le premier fils
+                if (parent_node->children) // Pas le premier enfant
                     prev_child->nextchild = new_node;
-                else // Premier fils
+                else // Premier enfant
                     parent_node->children = new_node;
                 append_node(d, new_node);
                 next_node = new_node; // On prépare la prochaine itération
             }
-            index++; // Prochaine lettre de "key"
+            index++;
         }
+        next_node->data = data; // Le dernier noeud doit forcément contenir la donnée
     }
 }
