@@ -188,7 +188,7 @@ char* scrabbleFindLongestWord(ScrabbleDict* sd, const char* letters) {
 	}
 
 	//Free the now useless subsets list
-	llFreeData(output_list);
+	llFree(output_list);
 	//free(key);
 	//return the word;
 	return max_word;
