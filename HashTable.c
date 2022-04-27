@@ -1,29 +1,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern char* strdup(const char*);  // strdup not declared in C99
+extern char *strdup(const char *); // strdup not declared in C99
 
 #include "Dict.h"
 
-
-typedef struct Node_t {
-    char* key;
-    void* data;
-    struct Node_t* next;
+typedef struct Node_t
+{
+    char *key;
+    void *data;
+    struct Node_t *next;
 } Node;
 
-struct Dict_t {
+struct Dict_t
+{
     size_t size;
     size_t nbKeys;
-    Node** array;
+    Node **array;
 };
 
-
-static size_t hash(const char* key) {
+static size_t hash(const char *key)
+{
     size_t length = strlen(key);
     size_t sum = 0, base = 1, mod = 1000000007;
 
-    for (size_t i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++)
+    {
         sum = (sum + base * key[i]) % mod;
         base = (base * 256) % mod;
     }
@@ -31,15 +33,17 @@ static size_t hash(const char* key) {
     return sum;
 }
 
-Dict* dictCreateEmpty() {
-    Dict* d = malloc(sizeof(Dict));
+Dict *dictCreateEmpty()
+{
+    Dict *d = malloc(sizeof(Dict));
     if (!d)
         return NULL;
 
     d->size = 1000;
     d->nbKeys = 0;
     d->array = calloc(d->size, sizeof(Node));
-    if (!d->array) {
+    if (!d->array)
+    {
         free(d);
         return NULL;
     }
@@ -47,18 +51,22 @@ Dict* dictCreateEmpty() {
     return d;
 }
 
-size_t dictNbKeys(Dict* d) {
+size_t dictNbKeys(Dict *d)
+{
     return d->nbKeys;
 }
 
-void dictFree(Dict* d) {
-    Node* a;
-    Node* b;
+void dictFree(Dict *d)
+{
+    Node *a;
+    Node *b;
 
-    for (size_t i = 0; i < d->size; i++) {
+    for (size_t i = 0; i < d->size; i++)
+    {
         a = d->array[i];
 
-        while (a) {
+        while (a)
+        {
             b = a->next;
             free(a->key);
             free(a);
@@ -70,8 +78,9 @@ void dictFree(Dict* d) {
     free(d);
 }
 
-static Node* dictGet(Dict* d, const char* key) {
-    Node* n = d->array[hash(key) % d->size];
+static Node *dictGet(Dict *d, const char *key)
+{
+    Node *n = d->array[hash(key) % d->size];
 
     while (n && strcmp(n->key, key) != 0)
         n = n->next;
@@ -79,12 +88,14 @@ static Node* dictGet(Dict* d, const char* key) {
     return n;
 }
 
-int dictContains(Dict* d, const char* key) {
+int dictContains(Dict *d, const char *key)
+{
     return dictGet(d, key) != NULL;
 }
 
-void* dictSearch(Dict* d, const char* key) {
-    Node* n = dictGet(d, key);
+void *dictSearch(Dict *d, const char *key)
+{
+    Node *n = dictGet(d, key);
 
     if (n)
         return n->data;
@@ -92,12 +103,14 @@ void* dictSearch(Dict* d, const char* key) {
         return NULL;
 }
 
-void dictInsert(Dict* d, const char* key, void* data) {
-    Node* n = dictGet(d, key);
+void dictInsert(Dict *d, const char *key, void *data)
+{
+    Node *n = dictGet(d, key);
 
     if (n)
         n->data = data;
-    else {
+    else
+    {
         size_t i = hash(key) % d->size;
 
         n = malloc(sizeof(Node));
