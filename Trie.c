@@ -225,4 +225,5 @@ void dictInsert(Dict *d, const char *key, void *data)
         }
         next_node->data = data; // Le dernier noeud doit forcément contenir la donnée
     }
+    free(key);
 }

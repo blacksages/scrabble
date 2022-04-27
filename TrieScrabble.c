@@ -67,42 +67,22 @@ ScrabbleDict *scrabbleCreateDict(List *words)
     Dict *dict = dictCreateEmpty();
     Node *node = llHead(words);
     char *data = NULL;
-    char *keys;
-    size_t *lens_including_null = calloc(llLength(words), sizeof(size_t));
-    if (!lens_including_null)
-    {
-        printf("Allocation error in scrabbleCreateDict!\n");
-        return NULL;
-    }
-    size_t total_len = 0, offset = 0;
-    size_t i = 0;
-    while (node) // On cherche à avoir toutes les clés en une fois pour éviter des malloc/free en boucle
-    {
-        lens_including_null[i] = strlen((char *)llData(node)) + 1;
-        total_len += lens_including_null[i];
-        node = llNext(node);
-        i++;
-    }
-    keys = calloc(total_len, sizeof(char));
-    if (!keys)
-    {
-        printf("Allocation error in scrabbleCreateDict!\n");
-        return NULL;
-    }
+    char *key = NULL;
     node = llHead(words);
-    i = 0;
     while (node) // Insertion des couples clé/donnée
     {
         data = (char *)llData(node);
-        strcpy(keys + offset, data);
-        heapsort_char(keys + offset, lens_including_null[i] - 1); // Tri par heapsort de la clé
-        dictInsert(dict, keys + offset, data);
+        key = malloc((strlen(data) + 1) * sizeof(char));
+        if (!key)
+        {
+            printf("Allocation error in scrabbleCreateDict!\n");
+            return NULL;
+        }
+        strcpy(key, data);
+        heapsort_char(key, strlen(key)); // Tri par heapsort de la clé
+        dictInsert(dict, key, data);
         node = llNext(node);
-        offset += lens_including_null[i];
-        i++;
     }
-    free(lens_including_null); // Au final 2 free et 2 calloc plutôt de que n free et n malloc
-    free(keys);
     ScrabbleDict *sd = malloc(sizeof(ScrabbleDict));
     if (!sd)
     {
