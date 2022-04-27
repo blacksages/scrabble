@@ -158,7 +158,7 @@ void *dictSearch(Dict *d, const char *key)
 
 static const char *dictSearchLongest_rec(Node *children, const char *letters, const char *longest)
 {
-    if (strcmp(letters, "") == 0 || children == NULL) // Plus d'enfants ou de lettre à traiter
+    if (strcmp(letters, "") == 0 || children == NULL) // Plus d'enfant ou de lettre à traiter
         return longest;
     Node *child = children;
     char *subletters = NULL;
