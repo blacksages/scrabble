@@ -74,7 +74,8 @@ static bool match_insert(char *letters, const char *word)
             index_w++;
             index_l = index_w; // On a trouvé la n-ième lettre du mot, on recommence depuis le début + index_w
         }
-        index_l++; // On parcourt les lettres
+        else
+            index_l++; // On parcourt les lettres
     }
 
     return word[index_w] == '\0'; // Si on a couvert tout le mot, on est arrivé à la fin
