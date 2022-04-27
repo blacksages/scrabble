@@ -152,7 +152,7 @@ char* scrabbleFindLongestWord(ScrabbleDict* sd, const char* letters) {
 	//Declaring variables for subsets generation
 	size_t len_letters = strlen(letters);
 	List *output_list = llCreateEmpty();
-
+	heapsort_char(letters, strlen(letters));
 	//Generating subsets
 	subsets(letters, len_letters, 0, "", 0, output_list);
 
@@ -169,7 +169,6 @@ char* scrabbleFindLongestWord(ScrabbleDict* sd, const char* letters) {
 	while(subset != NULL){
 		//Recover the key, which is a subset of the letters
 		key = (char *)llData(subset);
-		heapsort_char(key, strlen(key));
 		//Lookup the dictionary
 		data = (char *)dictSearch(dict, (const char*)key);
 
