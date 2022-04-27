@@ -169,7 +169,7 @@ char* scrabbleFindLongestWord(ScrabbleDict* sd, const char* letters) {
 	while(subset != NULL){
 		//Recover the key, which is a subset of the letters
 		key = (char *)llData(subset);
-
+		heapsort_char(key, strlen(key));
 		//Lookup the dictionary
 		data = (char *)dictSearch(dict, (const char*)key);
 
