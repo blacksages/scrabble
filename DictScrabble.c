@@ -7,6 +7,8 @@
 #include "LinkedList.h"
 #include "Scrabble.h"
 
+extern char *strdup(const char *); // strdup not declared in C99
+
 struct ScrabbleDict_t
 {
 	Dict *dictionary;
@@ -14,94 +16,111 @@ struct ScrabbleDict_t
 
 ////////////////////////////////////////////
 // Heapsort issu du projet 1
-static void swap_char(char *tab, int index_1, int index_2)
+/**
+ * @brief Echange deux caractères dans une chaîne de caractères.
+ * 
+ * @param str Chaîne de caractères
+ * @param index_1 Indice du premier caractère
+ * @param index_2 Indice du deuxième caractère
+ */
+static void swap_char(char *str, int index_1, int index_2);
+/**
+ * @brief Remonte d'un cran la plus haute valeur dans le tas à partir de la position i en comparant
+ * 		  avec les valeurs à droite et à gauche.
+ * 
+ * @param str Chaîne de caractère servant de tas
+ * @param i Position de départ
+ * @param heap_size Taille du tas
+ */
+static void max_heapify_char(char *str, int i, int heap_size);
+/**
+ * @brief Construit le tas de départ pour avoir la plus haut valeur en haut.
+ * 
+ * @param str Chaîne de caractère servant de tas
+ */
+static void build_max_heap_char(char *str);
+/**
+ * @brief Trie par tas une chaîne de caractères dans l'ordre lexicographique.
+ * 
+ * @param str Chaîne de caractère servant de tas
+ */
+static void heapsort_char(char *str);
+
+static void swap_char(char *str, int index_1, int index_2)
 {
-	char tmp = tab[index_1];
-	tab[index_1] = tab[index_2];
-	tab[index_2] = tmp;
+	char tmp = str[index_1];
+	str[index_1] = str[index_2];
+	str[index_2] = tmp;
 }
 
-static void max_heapify_char(char *array, int i, int heap_size)
+static void max_heapify_char(char *str, int i, int heap_size)
 {
 	int l = 2 * i + 1;
 	int r = 2 * i + 2;
 	int largest = i;
-	if (l < heap_size && array[l] > array[i])
+	if (l < heap_size && str[l] > str[i])
 		largest = l;
-	/*
-	else
-	  largest = i;
-	*/
-	if (r < heap_size && array[r] > array[largest])
+	if (r < heap_size && str[r] > str[largest])
 		largest = r;
 
 	if (largest != i)
 	{
-		swap_char(array, i, largest);
-		max_heapify_char(array, largest, heap_size);
+		swap_char(str, i, largest);
+		max_heapify_char(str, largest, heap_size);
 	}
 }
 
-static void build_max_heap_char(char *array, int array_size)
+static void build_max_heap_char(char *str)
 {
-	int heap_size = array_size;
-	int i;
-	for (i = array_size / 2 - 1; i >= 0; i--)
-		max_heapify_char(array, i, heap_size);
+	int heap_size = strlen(str);
+	for (int i = heap_size / 2 - 1; i >= 0; i--)
+		max_heapify_char(str, i, heap_size);
 }
 
-static void heapsort_char(char *array, int array_size)
+static void heapsort_char(char *str)
 {
-	build_max_heap_char(array, array_size);
-	int i;
-	for (i = array_size - 1; i >= 0; i--)
+	build_max_heap_char(str);
+	for (int i = strlen(str) - 1; i >= 0; i--)
 	{
-		swap_char(array, i, 0);
-		max_heapify_char(array, 0, i);
+		swap_char(str, i, 0);
+		max_heapify_char(str, 0, i);
 	}
 }
 ////////////////////////////////////////////
 
 ScrabbleDict *scrabbleCreateDict(List *words)
 {
-	// Creating a scrabble dictionary
+	// Création d'un dictionnaire de scrabble
 	ScrabbleDict *scrabble_dictionnary = malloc(sizeof(ScrabbleDict));
 
 	if (scrabble_dictionnary == NULL)
 		return NULL;
 
-	// Creating empty dictionnary
+	// Dictionnaire initial vide
 	Dict *dict = dictCreateEmpty();
 
-	size_t len_word;
-	size_t len_key;
 	char *data;
 	char *key;
 	Node *node = llHead(words);
 
 	while (node != NULL)
 	{
-		// Recovering the word
+		// Récupération du mot
 		data = (char *)llData(node);
-
-		// Creating a separate copy of the word, as we'll need one for the data
-		// and one for the key.
-		len_word = strlen(data);
-		key = malloc(len_word * sizeof(char) + 1);
-
-		if (key == NULL)
+		// Crée une copie du mot puisqu'on en a besoin pour la clé en plus de la donnée
+		key = strdup(data);
+		if (!key)
+		{
+			printf("Allocation error in scrabbleCreateDict!\n");
 			return NULL;
-
-		strcpy(key, data);
-
-		// Sorting the key
-		len_key = strlen(key);
-		heapsort_char(key, len_key);
-
-		// Inserting in the dictionnary
-		dictInsert(dict, (const char *)key, (void *)data);
-
-		// Iterating over the list
+		}
+		// Trie de la clé
+		heapsort_char(key);
+		// Insertion dans le dictionnaire
+		dictInsert(dict, key, (void *)data);
+		// Plus d'utilité pour la clé
+		free(key);
+		// Prochaine itération
 		node = llNext(node);
 	}
 
@@ -115,7 +134,6 @@ void scrabbleFreeDict(ScrabbleDict *sd)
 	free(sd);
 }
 
-// list version
 static void subsets(const char *set, size_t set_size, size_t index, char *subset, size_t subset_size, List *output_list)
 {
 	if (index >= set_size)
@@ -137,14 +155,16 @@ static void subsets(const char *set, size_t set_size, size_t index, char *subset
 
 char *scrabbleFindLongestWord(ScrabbleDict *sd, const char *letters)
 {
-	// Declaring variables for subsets generation
+	// Déclaration des variables pour la génération des sous-ensembles
 	size_t len_letters = strlen(letters);
 	List *output_list = llCreateEmpty();
-	heapsort_char(letters, strlen(letters));
-	// Generating subsets
-	subsets(letters, len_letters, 0, "", 0, output_list);
+	heapsort_char((char*)letters);
+	// Génération des sous-ensembles
+	// Initialise à 0 ou '\0' le char alloué qui sera utilisé pour le premier sous-ensemble
+	char *empty_subset = calloc(1, sizeof(char));
+	subsets(letters, len_letters, 0, empty_subset, 0, output_list);
 
-	// Declaring necessary variables
+	// Déclaration des variables nécessaires
 	Dict *dict = sd->dictionary;
 	char *key;
 	char *data;
@@ -152,26 +172,25 @@ char *scrabbleFindLongestWord(ScrabbleDict *sd, const char *letters)
 	size_t max_size = 0;
 	size_t tmp;
 	Node *subset = llHead(output_list);
-
-	// Stops when there is no more node
+	// S'arrête quand il n'y a plus de noeud
 	while (subset != NULL)
 	{
 		key = (char *)llData(subset);
 		data = (char *)dictSearch(dict, (const char *)key);
 
-		if (data != NULL) // We found a value associated to the key
+		if (data != NULL) // On a trouvé une valeur associée à la clé
 		{
 			tmp = strlen(data);
-			// If that length is strictly higher than the current max, it becomes the new max
+			// Si la longueur est strictement plus grande que l'actuel max, elle devient le nouveau max
 			if (tmp > max_size)
 			{
 				max_size = tmp;
 				max_word = data;
 			}
 		}
-		// Iterate to next node
+		// Prochaine itération
 		subset = llNext(subset);
 	}
-	llFree(output_list);
-	return max_word; // NULL if no subset was found in the dictionary
+	llFreeData(output_list);
+	return max_word; // NULL si aucune sous-ensemble n'a été trouvé dans le dictionnaire
 }

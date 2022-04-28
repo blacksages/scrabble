@@ -128,7 +128,6 @@ Dict *dictCreateEmpty()
         return NULL;
     }
     dict->nbkeys = 0;
-    dict->array[0] = root;
     return dict;
 }
 
@@ -141,6 +140,7 @@ void dictFree(Dict *d)
 {
     for (size_t i = 0; i < d->nbkeys; i++)
         free(d->array[i]);
+    free(d->root);
     free(d->array);
     free(d);
 }
@@ -158,7 +158,7 @@ void *dictSearch(Dict *d, const char *key)
 
 static const char *dictSearchLongest_rec(Node *children, const char *letters, const char *longest)
 {
-    if (strcmp(letters, "") == 0 || children == NULL) // Plus d'enfant ou de lettre à traiter
+    if (strcmp((char *)letters, "") == 0 || children == NULL) // Plus d'enfant ou de lettre à traiter
         return longest;
     Node *child = children;
     char *subletters = NULL;
@@ -182,7 +182,7 @@ static const char *dictSearchLongest_rec(Node *children, const char *letters, co
 void *dictSearchLongest(Dict *d, const char *letters)
 {
     const char *longest = dictSearchLongest_rec(d->root->children, letters, "");
-    return strcmp(longest, "") == 0 ? NULL : longest; // longest est vide si c'est le mot initial qui a démarré l'algorithme
+    return strcmp((char *)longest, "") == 0 ? NULL : (char *)longest; // longest est vide si c'est le mot initial qui a démarré l'algorithme
 }
 
 void dictInsert(Dict *d, const char *key, void *data)
@@ -225,5 +225,4 @@ void dictInsert(Dict *d, const char *key, void *data)
         }
         next_node->data = data; // Le dernier noeud doit forcément contenir la donnée
     }
-    free(key);
 }
