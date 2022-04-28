@@ -119,5 +119,43 @@ void dictInsert(Dict *d, const char *key, void *data)
         n->next = d->array[i];
         d->array[i] = n;
         d->nbKeys++;
+
+				//If the table is above the defined max filling threshold
+				float tmp = (((float)d->nbKeys/(float)d->size)*100);
+				if(tmp > (float)REALLOC_THRESHOLD){
+					//Declaring useful variables
+					size_t new_size = d->size * 2;
+					Node **new_array = calloc(d->size * 2, sizeof(Node));
+					size_t j = 0;
+					size_t new_index;
+					char *tmp_key;
+					Node *tmp_next;
+
+					//For each node, we redefine its position via the hash function and
+					//the new size, and put it at this new position in a new array (given current node is not null);
+					for(j = 0; j < d->size; j++){
+						n = d->array[j];
+						if(n != NULL){
+							while(n->next != NULL){
+								//We recover the key and the next node
+								tmp_key = n->key;
+								tmp_next = n->next;
+
+								//We compute new position and create a bucket there
+								new_index = hash(tmp_key) % new_size;
+								n->next = new_array[new_index];
+								new_array[new_index] = n;
+
+								//Iterate loop
+								n = tmp_next;
+							}
+						}
+					}
+					//Putting the new array in the structure, and updating the size
+					d->array = new_array;
+					d->size = new_size;
+
+					//We don't need the old array so we free it
+				}
     }
 }
