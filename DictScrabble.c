@@ -192,5 +192,6 @@ char *scrabbleFindLongestWord(ScrabbleDict *sd, const char *letters)
 		subset = llNext(subset);
 	}
 	llFreeData(output_list);
+	printf("%s %s\n", letters, max_word);
 	return max_word; // NULL si aucune sous-ensemble n'a été trouvé dans le dictionnaire
 }

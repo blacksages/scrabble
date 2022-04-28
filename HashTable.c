@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 extern char *strdup(const char *); // strdup not declared in C99
 
@@ -107,60 +108,54 @@ void *dictSearch(Dict *d, const char *key)
 
 void dictInsert(Dict *d, const char *key, void *data)
 {
-    Node *n = dictGet(d, key);
+    Node *node = dictGet(d, key);
 
-    if (n)
-        n->data = data;
+    if (node)
+        node->data = data;
     else
     {
-        size_t i = hash(key) % d->size;
-
-        n = malloc(sizeof(Node));
-        n->key = strdup(key);
-        n->data = data;
-        n->next = d->array[i];
-        d->array[i] = n;
-        d->nbKeys++;
-        // Si la table est au-dessus du seuil on réalloue un nouveau tableau
-        float tmp = (((float)d->nbKeys / (float)d->size) * 100);
-        if (tmp > (float)REALLOC_THRESHOLD)
+        // Si le tableau a encore de la place (en-dessous du seuil) on ajoute le noeud
+        if ((float)d->nbKeys / d->size < REALLOC_THRESHOLD)
+        {
+            node = malloc(sizeof(Node));
+            if (!node)
+            {
+                printf("Allocation error in dictInsert!\n");
+                return;
+            }
+            size_t i = hash(key) % d->size;
+            node->key = strdup(key);
+            node->data = data;
+            node->next = d->array[i];
+            d->array[i] = node;
+            d->nbKeys++;
+        }
+        else // Sinon on agrandit le tableau
         {
             // Déclaration des variables nécessaires
+            Node *next_node = NULL;
+            // Déclaration du nouveau tableau
             size_t new_size = d->size * 2;
             Node **new_array = calloc(d->size * 2, sizeof(Node));
-            size_t j = 0;
-            size_t new_index;
-            char *tmp_key;
-            Node *tmp_next;
 
-            // Pour chaque noeud (non NULL), on redéfinit sa position à travers le hash et la nouvelle taille
-            // Puis on place le noeud dans le nouveau tableau
-            for (j = 0; j < d->size; j++)
+            for (size_t j = 0; j < d->size; j++)
             {
-                n = d->array[j];
-                if (n != NULL)
+                next_node = d->array[j];
+                while (next_node != NULL)
                 {
-                    while (n->next != NULL)
-                    {
-                        // On récupère la clé et le prochain noeud
-                        tmp_key = n->key;
-                        tmp_next = n->next;
-
-                        // On calcule la nouvelle position et on crée le "bucket" ici
-                        new_index = hash(tmp_key) % new_size;
-                        n->next = new_array[new_index];
-                        new_array[new_index] = n;
-
-                        // Prochaine itération
-                        n = tmp_next;
-                    }
+                    node = next_node ; // On réutilise l'ancien noeud
+                    next_node = node->next; // On prépare la prochaine itération
+                    //On insère le noeud dans le nouveau tableau (on garde sa clé et sa donnée)
+                    size_t i = hash(key) % new_size;
+                    node->next = new_array[i];
+                    new_array[i] = node;
                 }
             }
-            // Putting the new array in the structure, and updating the size
+            // On a plus besoin de l'ancien tableau
+            free(d->array);
+            // Nouveau tableau et nouvelle taille
             d->array = new_array;
             d->size = new_size;
-
-            // We don't need the old array so we free it
         }
     }
 }
