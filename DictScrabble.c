@@ -88,6 +88,17 @@ static void heapsort_char(char *str)
 	}
 }
 ////////////////////////////////////////////
+/**
+ * @brief Ajoute les sous-ensembles d'une chaîne dans une liste liée de manière récursive.
+ *
+ * @param set Chaîne dont on cherche les sous-ensembles
+ * @param set_size Taille de la chaîne, typiquement strlen(set)
+ * @param index Indice à partir du quel on compose les sous-ensemble, laissez à 1
+ * @param subset Sous-ensemble de départ, typiquement malloc d'une chaîne vide
+ * @param subset_size Taille du sous-ensemble
+ * @param output_list Liste qui accueille les sous-ensembles
+ */
+static void subsets(const char *set, size_t set_size, size_t index, char *subset, size_t subset_size, List *output_list);
 
 ScrabbleDict *scrabbleCreateDict(List *words)
 {
