@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "Dict.h"
 #include "LinkedList.h"
@@ -18,7 +19,7 @@ struct ScrabbleDict_t
 // Heapsort issu du projet 1
 /**
  * @brief Echange deux caractères dans une chaîne de caractères.
- * 
+ *
  * @param str Chaîne de caractères
  * @param index_1 Indice du premier caractère
  * @param index_2 Indice du deuxième caractère
@@ -27,7 +28,7 @@ static void swap_char(char *str, int index_1, int index_2);
 /**
  * @brief Remonte d'un cran la plus haute valeur dans le tas à partir de la position i en comparant
  * 		  avec les valeurs à droite et à gauche.
- * 
+ *
  * @param str Chaîne de caractère servant de tas
  * @param i Position de départ
  * @param heap_size Taille du tas
@@ -35,13 +36,13 @@ static void swap_char(char *str, int index_1, int index_2);
 static void max_heapify_char(char *str, int i, int heap_size);
 /**
  * @brief Construit le tas de départ pour avoir la plus haut valeur en haut.
- * 
+ *
  * @param str Chaîne de caractère servant de tas
  */
 static void build_max_heap_char(char *str);
 /**
  * @brief Trie par tas une chaîne de caractères dans l'ordre lexicographique.
- * 
+ *
  * @param str Chaîne de caractère servant de tas
  */
 static void heapsort_char(char *str);
@@ -158,7 +159,7 @@ char *scrabbleFindLongestWord(ScrabbleDict *sd, const char *letters)
 	// Déclaration des variables pour la génération des sous-ensembles
 	size_t len_letters = strlen(letters);
 	List *output_list = llCreateEmpty();
-	heapsort_char((char*)letters);
+	heapsort_char((char *)letters);
 	// Génération des sous-ensembles
 	// Initialise à 0 ou '\0' le char alloué qui sera utilisé pour le premier sous-ensemble
 	char *empty_subset = calloc(1, sizeof(char));
@@ -192,6 +193,5 @@ char *scrabbleFindLongestWord(ScrabbleDict *sd, const char *letters)
 		subset = llNext(subset);
 	}
 	llFreeData(output_list);
-	printf("%s %s\n", letters, max_word);
-	return max_word; // NULL si aucune sous-ensemble n'a été trouvé dans le dictionnaire
+	return max_word; // NULL si aucun sous-ensemble n'a été trouvé dans le dictionnaire
 }

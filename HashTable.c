@@ -146,7 +146,7 @@ void dictInsert(Dict *d, const char *key, void *data)
                     node = next_node ; // On réutilise l'ancien noeud
                     next_node = node->next; // On prépare la prochaine itération
                     //On insère le noeud dans le nouveau tableau (on garde sa clé et sa donnée)
-                    size_t i = hash(key) % new_size;
+                    size_t i = hash(node->key) % new_size;
                     node->next = new_array[i];
                     new_array[i] = node;
                 }
