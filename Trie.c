@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "Dict.h"
 
@@ -9,19 +8,19 @@
  *        Issu du cours de SDA, slide 223.
  *
  */
-typedef struct Node_t
+typedef struct TrieNode_t
 {
-    struct Node_t *children;
-    struct Node_t *parent;
-    struct Node_t *nextchild;
+    struct TrieNode_t *children;
+    struct TrieNode_t *parent;
+    struct TrieNode_t *nextchild;
     char label;
     char *data;
-} Node;
+} TrieNode;
 
 struct Dict_t
 {
-    Node *root;
-    Node **array;
+    TrieNode *root;
+    TrieNode **array;
     size_t size;
     size_t nbkeys;
 };
@@ -32,7 +31,7 @@ struct Dict_t
  * @param key Clé de la donnée
  * @return Node* NULL si la donnée ne se trouve pas dans le trie sinon le noeud
  */
-static Node *dictGet(Dict *d, const char *key);
+static TrieNode *dictGet(Dict *d, const char *key);
 /**
  * @brief Initialise le noeud avec ses membres.
  *
@@ -43,7 +42,7 @@ static Node *dictGet(Dict *d, const char *key);
  * @param key La clé associée au noeud
  * @param data La donnée que contient le noeud
  */
-static void init_node(Node *node, Node *children, Node *parent, Node *nextchild, char key, char *data);
+static void init_node(TrieNode *node, TrieNode *children, TrieNode *parent, TrieNode *nextchild, char key, char *data);
 /**
  * @brief Ajoute un noeud au trie mais ne l'initialise pas et ne l'insère pas avec les autres noeuds.
  *        Le but de cette fonction est en vue de faciliter la méthode dictFree
@@ -51,7 +50,7 @@ static void init_node(Node *node, Node *children, Node *parent, Node *nextchild,
  * @param d Trie
  * @param node Noeud à ajouer
  */
-static void append_node(Dict *d, Node *node);
+static void append_node(Dict *d, TrieNode *node);
 /**
  * @brief Recherche récursive du mot le plus long.
  *
@@ -60,12 +59,12 @@ static void append_node(Dict *d, Node *node);
  * @param longest Le plus long mot déjà trouvé en amont
  * @return const char* Le mot le plus long trouvé en chemin
  */
-static const char *dictSearchLongest_rec(Node *children, const char *letters, const char *longest);
+static const char *dictSearchLongest_rec(TrieNode *children, const char *letters, const char *longest);
 
-static Node *dictGet(Dict *d, const char *key)
+static TrieNode *dictGet(Dict *d, const char *key)
 {
     size_t index = 0;
-    Node *next_node = d->root;
+    TrieNode *next_node = d->root;
     while (next_node && key[index] != '\0') // Max strlen(key)
     {
         next_node = next_node->children; // On regarde les prochaines lettres stockées
@@ -83,7 +82,7 @@ static Node *dictGet(Dict *d, const char *key)
     return next_node;
 }
 
-static void init_node(Node *node, Node *children, Node *parent, Node *nextchild, char label, char *data)
+static void init_node(TrieNode *node, TrieNode *children, TrieNode *parent, TrieNode *nextchild, char label, char *data)
 {
     node->children = children;
     node->parent = parent;
@@ -92,17 +91,14 @@ static void init_node(Node *node, Node *children, Node *parent, Node *nextchild,
     node->data = data;
 }
 
-static void append_node(Dict *d, Node *node)
+static void append_node(Dict *d, TrieNode *node)
 {
     if (d->nbkeys + 1 == d->size)
     {
         d->size = 2 * d->size; // On multiplie pour avoir une complexité linéaire
-        d->array = realloc(d->array, d->size * sizeof(Node *));
+        d->array = realloc(d->array, d->size * sizeof(TrieNode *));
         if (!d->array)
-        {
-            printf("Allocation error in append_node!\n");
             return;
-        }
     }
     d->array[d->nbkeys] = node;
     d->nbkeys++;
@@ -111,20 +107,23 @@ static void append_node(Dict *d, Node *node)
 Dict *dictCreateEmpty()
 {
     Dict *dict = malloc(sizeof(Dict));
-    Node *root = malloc(sizeof(Node));
-    if (!dict || !root)
+    if (!dict)
+        return NULL;
+    TrieNode *root = malloc(sizeof(TrieNode));
+    if (!root)
     {
-        printf("Allocation error in dictCreateEmpty!\n");
+        free(dict);
         return NULL;
     }
     init_node(root, NULL, NULL, NULL, '\0', NULL);
 
     dict->root = root;
     dict->size = 10;
-    dict->array = calloc(dict->size, sizeof(Node *));
+    dict->array = calloc(dict->size, sizeof(TrieNode *));
     if (!dict->array)
     {
-        printf("Allocation error in dictCreateEmpty!\n");
+        free(dict);
+        free(root);
         return NULL;
     }
     dict->nbkeys = 0;
@@ -152,15 +151,15 @@ int dictContains(Dict *d, const char *key)
 
 void *dictSearch(Dict *d, const char *key)
 {
-    Node *node = dictGet(d, key);
+    TrieNode *node = dictGet(d, key);
     return node ? node->data : NULL; // NULL si aucun mot n'a été trouvé
 }
 
-static const char *dictSearchLongest_rec(Node *children, const char *letters, const char *longest)
+static const char *dictSearchLongest_rec(TrieNode *children, const char *letters, const char *longest)
 {
     if (strcmp((char *)letters, "") == 0 || children == NULL) // Plus d'enfant ou de lettre à traiter
         return longest;
-    Node *child = children;
+    TrieNode *child = children;
     char *subletters = NULL;
     const char *candidate = NULL;
     while (child) // On boucle sur tous les enfants
@@ -187,13 +186,13 @@ void *dictSearchLongest(Dict *d, const char *letters)
 
 void dictInsert(Dict *d, const char *key, void *data)
 {
-    Node *node = dictGet(d, key);
+    TrieNode *node = dictGet(d, key);
     if (node)
         node->data = (char *)data;
     else
     {
         size_t index = 0;
-        Node *next_node = d->root, *prev_child = NULL, *parent_node = NULL, *new_node = NULL;
+        TrieNode *next_node = d->root, *prev_child = NULL, *parent_node = NULL, *new_node = NULL;
         while (key[index] != '\0') // On rajoute toutes les lettres de la clé dans le trie
         {
             parent_node = next_node;
@@ -207,12 +206,9 @@ void dictInsert(Dict *d, const char *key, void *data)
             }
             if (!next_node) // Lettre non trouvée, on doit l'ajouter
             {
-                new_node = malloc(sizeof(Node));
+                new_node = malloc(sizeof(TrieNode));
                 if (!new_node)
-                {
-                    printf("Allocation error in dictInsert!\n");
                     return;
-                }
                 init_node(new_node, NULL, parent_node, NULL, key[index], NULL);
                 if (parent_node->children) // Pas le premier enfant
                     prev_child->nextchild = new_node;

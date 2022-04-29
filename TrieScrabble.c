@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "Dict.h"
 #include "LinkedList.h"
@@ -90,6 +89,9 @@ static void heapsort_char(char *str)
 
 ScrabbleDict *scrabbleCreateDict(List *words)
 {
+    ScrabbleDict *sd = malloc(sizeof(ScrabbleDict));
+    if (!sd)
+        return NULL;
     Dict *dict = dictCreateEmpty();
     Node *node = llHead(words);
     char *data = NULL;
@@ -101,19 +103,14 @@ ScrabbleDict *scrabbleCreateDict(List *words)
         key = strdup(data);
         if (!key)
         {
-            printf("Allocation error in scrabbleCreateDict!\n");
+            free(sd);
+            dictFree(dict);
             return NULL;
         }
         heapsort_char(key); // Tri par heapsort de la clé
         dictInsert(dict, key, data);
         free(key);
         node = llNext(node);
-    }
-    ScrabbleDict *sd = malloc(sizeof(ScrabbleDict));
-    if (!sd)
-    {
-        printf("Allocation error in scrabbleCreateDict!\n");
-        return NULL;
     }
     sd->dict = dict;
     return sd;
@@ -129,10 +126,7 @@ char *scrabbleFindLongestWord(ScrabbleDict *sd, const char *letters)
 {
     char *sorted_l = strdup(letters);
     if (!sorted_l)
-    {
-        printf("Allocation error in scrabbleFindLongestWord!\n");
         return NULL;
-    }
     heapsort_char(sorted_l); // Tri des lettres par heapsort
     char *longest = dictSearchLongest(sd->dict, sorted_l);
     free(sorted_l);

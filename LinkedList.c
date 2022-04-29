@@ -3,7 +3,7 @@
 #include "LinkedList.h"
 
 
-struct Node_t {
+struct TrieNode_t {
     void* data;
     Node* next;
 };

@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 extern char *strdup(const char *); // strdup not declared in C99
 
@@ -8,18 +7,18 @@ extern char *strdup(const char *); // strdup not declared in C99
 
 #define REALLOC_THRESHOLD 0.7f
 
-typedef struct Node_t
+typedef struct HashNode_t
 {
     char *key;
     void *data;
-    struct Node_t *next;
-} Node;
+    struct HashNode_t *next;
+} HashNode;
 
 struct Dict_t
 {
     size_t size;
     size_t nbKeys;
-    Node **array;
+    HashNode **array;
 };
 
 static size_t hash(const char *key)
@@ -44,7 +43,7 @@ Dict *dictCreateEmpty()
 
     d->size = 1000;
     d->nbKeys = 0;
-    d->array = calloc(d->size, sizeof(Node));
+    d->array = calloc(d->size, sizeof(HashNode));
     if (!d->array)
     {
         free(d);
@@ -61,8 +60,8 @@ size_t dictNbKeys(Dict *d)
 
 void dictFree(Dict *d)
 {
-    Node *a;
-    Node *b;
+    HashNode *a;
+    HashNode *b;
 
     for (size_t i = 0; i < d->size; i++)
     {
@@ -81,9 +80,9 @@ void dictFree(Dict *d)
     free(d);
 }
 
-static Node *dictGet(Dict *d, const char *key)
+static HashNode *dictGet(Dict *d, const char *key)
 {
-    Node *n = d->array[hash(key) % d->size];
+    HashNode *n = d->array[hash(key) % d->size];
 
     while (n && strcmp(n->key, key) != 0)
         n = n->next;
@@ -98,7 +97,7 @@ int dictContains(Dict *d, const char *key)
 
 void *dictSearch(Dict *d, const char *key)
 {
-    Node *n = dictGet(d, key);
+    HashNode *n = dictGet(d, key);
 
     if (n)
         return n->data;
@@ -108,7 +107,7 @@ void *dictSearch(Dict *d, const char *key)
 
 void dictInsert(Dict *d, const char *key, void *data)
 {
-    Node *node = dictGet(d, key);
+    HashNode *node = dictGet(d, key);
 
     if (node)
         node->data = data;
@@ -117,12 +116,9 @@ void dictInsert(Dict *d, const char *key, void *data)
         // Si le tableau a encore de la place (en-dessous du seuil) on ajoute le noeud
         if ((float)d->nbKeys / d->size < REALLOC_THRESHOLD)
         {
-            node = malloc(sizeof(Node));
+            node = malloc(sizeof(HashNode));
             if (!node)
-            {
-                printf("Allocation error in dictInsert!\n");
                 return;
-            }
             size_t i = hash(key) % d->size;
             node->key = strdup(key);
             node->data = data;
@@ -133,10 +129,10 @@ void dictInsert(Dict *d, const char *key, void *data)
         else // Sinon on agrandit le tableau
         {
             // Déclaration des variables nécessaires
-            Node *next_node = NULL;
+            HashNode *next_node = NULL;
             // Déclaration du nouveau tableau
             size_t new_size = d->size * 2;
-            Node **new_array = calloc(d->size * 2, sizeof(Node));
+            HashNode **new_array = calloc(d->size * 2, sizeof(HashNode));
 
             for (size_t j = 0; j < d->size; j++)
             {

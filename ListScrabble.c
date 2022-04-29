@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "LinkedList.h"
 #include "Scrabble.h"
@@ -112,7 +111,7 @@ static bool match(const char *letters, char *word)
     if (strlen(word) > strlen(letters))
         return false;
     if (strlen(letters) < CUTOFF)
-        return match_insert(letters, word);
+        return match_insert((char *)letters, word);
     else
         return match_count(letters, word);
 }
@@ -121,10 +120,7 @@ ScrabbleDict *scrabbleCreateDict(List *words)
 {
     ScrabbleDict *sd = malloc(sizeof(ScrabbleDict));
     if (!sd)
-    {
-        printf("Allocation error in scrabbleCreateDict\n");
         return NULL;
-    }
 
     sd->words = words;
 

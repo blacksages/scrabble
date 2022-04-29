@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <math.h>
 
 #include "Dict.h"
@@ -122,10 +121,7 @@ ScrabbleDict *scrabbleCreateDict(List *words)
 		// Crée une copie du mot puisqu'on en a besoin pour la clé en plus de la donnée
 		key = strdup(data);
 		if (!key)
-		{
-			printf("Allocation error in scrabbleCreateDict!\n");
 			return NULL;
-		}
 		// Trie de la clé
 		heapsort_char(key);
 		// Insertion dans le dictionnaire

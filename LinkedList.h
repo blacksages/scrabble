@@ -2,7 +2,7 @@
 #define _LINKED_LIST_H_
 
 /** Node (opaque) structure */
-typedef struct Node_t Node;
+typedef struct TrieNode_t Node;
 
 /** List (opaque) structure */
 typedef struct List_t List;
