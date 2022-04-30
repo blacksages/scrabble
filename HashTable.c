@@ -43,7 +43,7 @@ Dict *dictCreateEmpty()
 
     d->size = 1000;
     d->nbKeys = 0;
-    d->array = calloc(d->size, sizeof(HashNode));
+    d->array = calloc(d->size, sizeof(HashNode *));
     if (!d->array)
     {
         free(d);
@@ -132,7 +132,9 @@ void dictInsert(Dict *d, const char *key, void *data)
             HashNode *next_node = NULL;
             // Déclaration du nouveau tableau
             size_t new_size = d->size * 2;
-            HashNode **new_array = calloc(d->size * 2, sizeof(HashNode));
+            HashNode **new_array = calloc(d->size * 2, sizeof(HashNode *));
+            if(!new_array)
+                return;
 
             for (size_t j = 0; j < d->size; j++)
             {
@@ -152,6 +154,7 @@ void dictInsert(Dict *d, const char *key, void *data)
             // Nouveau tableau et nouvelle taille
             d->array = new_array;
             d->size = new_size;
+            dictInsert(d, key, data); // On insère la nouvelle donnée dans le dictionnaire avec la nouvelle taille
         }
     }
 }

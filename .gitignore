@@ -4,3 +4,6 @@ sb_hash
 sb_list
 sb_trie
 .vscode
+*.txt
+!words_large.txt
+!words_small.txt
